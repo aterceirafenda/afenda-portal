@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#100E15">
+<title>A Fenda - Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Mohave:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<script>
+  // A URL do seu Apps Script (deployment do Hub)
+  window.API_URL = 'https://script.google.com/macros/s/AKfycbwTtQdptwC2e9b9Q-krhKehE2dznXoBuBB8HYCyKf_Ho76v3iey7erX9FJjAbX8Mzt_/exec';
+</script>
+<style>
+  /* ═══════════════════════════════════════════════════════════
+     COLE AQUI TODO O CSS DO HUB QUE VOCÊ JÁ TINHA
+     (Pegue do arquivo !DOCTYPE html.txt do Hub, da tag <style> até </style>)
+     ═══════════════════════════════════════════════════════════ */
+  /* Exemplo resumido: */
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{--orange:#F47920;--ink:#100E15;--bg:#F5F3EF;--surface:#FFF;--text:#17151B;--border:#E3E0DA}
+  /* ... cole o resto do CSS ... */
+</style>
+</head>
+<body>
+  <!-- Mantenha os elementos <div id="app">, <div id="login-overlay"> e <div id="workspace"> exatamente como estavam no seu Hub -->
+  
+  <div id="app" class="hidden">
+    <!-- Sidebar, topbar, etc... -->
+  </div>
+  <div id="workspace"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// PONTE DE COMUNICAÇÃO (Fetch)
+// ═══════════════════════════════════════════════════════════════
+function api(acao, args) {
+  return fetch(window.API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ acao: acao, args: args })
+  }).then(function(r) { return r.json(); })
+    .then(function(r) {
+      // Se o Apps Script devolver a string do HTML (debug_getModuleHtml), retorna direto
+      if (r && r.__texto) return r.__texto;
+      return r;
+    });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SUBSTITUIÇÕES NO SEU CÓDIGO JAVASCRIPT DO HUB
+// ═══════════════════════════════════════════════════════════════
+// Onde você tinha:
+// google.script.run.withSuccessHandler(...).withFailureHandler(...).getModulosHubJSON(token)
+// Troque por:
+// api('getModulosHubJSON', [token]).then(seuSuccess).catch(seuFailure)
+
+// Onde você tinha:
+// google.script.run.withSuccessHandler(...).authProxy({acao: 'login', ...})
+// Troque por:
+// api('authProxy', [{acao: 'login', ...}]).then(...)
+
+// Onde você tinha:
+// google.script.run.withSuccessHandler(...).debug_getModuleHtml(slug)
+// Troque por:
+// api('debug_getModuleHtml', [slug]).then(...)
+
+// ═══════════════════════════════════════════════════════════════
+// ADAPTAÇÃO DO SEU CÓDIGO EXISTENTE (Exemplo para o Login)
+// ═══════════════════════════════════════════════════════════════
+// Seu código de login antigo:
+/*
+function hub_lgFazerLogin(){
+  var login = document.getElementById('lg-login-input').value.trim();
+  var senha = document.getElementById('lg-senha-input').value;
+  // ...
+  google.script.run
+    .withSuccessHandler(function(res){ ... })
+    .withFailureHandler(function(e){ ... })
+    .authProxy({ acao: 'login', login: login, senha: senha });
+}
+*/
+
+// Seu novo código de login:
+function hub_lgFazerLogin(){
+  var login = document.getElementById('lg-login-input').value.trim();
+  var senha = document.getElementById('lg-senha-input').value;
+  if (!login || !senha) { hub_lgMsg('lg-msg-login', 'Preencha email/CPF e senha.', 'err'); return; }
+  
+  hub_setBtn('lg-btn-login', 'Entrando...', true);
+  
+  api('authProxy', [{ acao: 'login', login: login, senha: senha }])
+    .then(function(res){
+      hub_setBtn('lg-btn-login', 'Entrar', false);
+      if (!res || !res.sucesso) { 
+        hub_lgMsg('lg-msg-login', (res && res.mensagem) || 'Credenciais invalidas.', 'err'); 
+        return; 
+      }
+      hub_onLoginOk(res);
+    })
+    .catch(function(e){
+      hub_setBtn('lg-btn-login', 'Entrar', false); 
+      hub_lgMsg('lg-msg-login', 'Erro de conexão.', 'err');
+    });
+}
+
+// Repita a lógica de substituição para as outras funções do seu JS
+</script>
+</body>
+</html>
