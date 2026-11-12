@@ -22,6 +22,18 @@
     var base = 'https://script.google.com/macros/s/AKfycbxNnr3fklsysSkcmKxZ6UmQJFVns9iRFGixejkQ9XV6-sVXV8TAKkDjJqoe_gX5S1BW/exec';
     var params = window.location.search || '';
     document.getElementById('app-frame').src = base + params;
+
+    // Escuta o iframe avisar "já resolvi, limpa a URL"
+    window.addEventListener('message', function(ev) {
+      if (ev && ev.data && ev.data.type && String(ev.data.type).indexOf('afenda_') === 0) {
+        try {
+          var limpo = window.location.pathname;  // "/" ou "/algo"
+          if (limpo !== window.location.pathname || window.location.search || window.location.hash) {
+            history.replaceState(null, '', limpo);
+          }
+        } catch(e) {}
+      }
+    });
   })();
 </script>
 </body>
